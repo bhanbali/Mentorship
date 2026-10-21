@@ -1,0 +1,811 @@
+
+"use strict";
+/* ============================================================
+   DATA: styles, skills, scenario bank (aligned to "The Colleague Catalyst" workshop)
+   ============================================================ */
+const STYLES = {
+  directive:     {name:"Directive",     motto:"I do, you watch"},
+  facilitative:  {name:"Facilitative",  motto:"You do, I guide"},
+  developmental: {name:"Developmental", motto:"Grow for the long term"},
+  peer:          {name:"Peer-Based",    motto:"We do together"},
+  none:          {name:"Reflex reply (no mentoring style)", motto:""}
+};
+const STYLE_KEYS = ["directive","facilitative","developmental","peer"];
+const SKILLS = {
+  listening:{name:"Active Listening",    check:"Paraphrased and validated what the mentee said"},
+  empathy:{name:"Empathy",               check:"Acknowledged the mentee’s feelings"},
+  questioning:{name:"Powerful Questioning", check:"Asked open questions (what, how, why)"},
+  feedback:{name:"Constructive Feedback",   check:"Gave specific, actionable feedback on behavior"}
+};
+const SKILL_KEYS = Object.keys(SKILLS);
+
+/* Choice helper: C(quote, style, skill, kind, feedback, overrides) */
+const FX_DEF = {best:[10,15,-18], ok:[3,3,-4], trap:[-10,-12,12], fatal:[-25,-20,40]};
+const XP_DEF = {best:40, ok:15, trap:0, fatal:0};
+const C = (q,st,sk,k,f,o={}) => ({q,st,sk,k,f,fx:o.fx||FX_DEF[k],xp:o.xp!=null?o.xp:XP_DEF[k],badge:o.badge,sm:o.sm,over:o.over});
+
+const SCENES = [
+/* ---------------- DIRECTIVE: mentee is new to the task ---------------- */
+{id:"d1", best:"directive", theme:"The 200-Seat Auditorium Shock", tag:"New lecturer · first large class",
+ cues:["Experience: has never taught 200 students","Time: first lecture is Monday","Need: a plan, not a debate"],
+ setting:"It is 9:40 AM. Your mentee, a brand-new lecturer, appears at your door with red eyes and a laptop that has been open all night.",
+ mentee:"“I just found out my section is 200 students. Next Monday. I was rewriting my slides at 2:00 AM and I still don’t know how I’ll keep the room from slipping out of my control.”",
+ coach:["How much experience does your mentee have with a room this size?","Is this an immediate crisis or a reflective moment? What does the clock say?","What does a stranded person need first: a map or a question?"],
+ why:"The mentee is new to the task and has one week. There is no time to discover it alone, so the mentor leads (“I do, you watch”).",
+ choices:[
+  C("“Let’s fix this together right now. Open with a five-minute hook, then teach in three 15-minute chunks, with a polling checkpoint at the end of each chunk. Here’s a one-page blueprint you can follow on Monday.”","directive","feedback","best","Textbook Directive mentoring. A novice facing a hard deadline needs clear, specific, actionable structure, and stress dropped because the unknown became a concrete plan.",{fx:[10,14,-25],badge:"Crisis Commander"}),
+  C("“Interesting. Before we get to slides, tell me: what does your ideal large classroom feel like?”","facilitative","questioning","trap","Premature Facilitation. Questions assume the mentee knows the basics. With no baseline for a 200-seat room it caused cognitive freeze, and Facilitative mentoring is also too slow when time is short.",{fx:[-16,-8,25]}),
+  C("“Don’t worry! You have a PhD, you’ll be great. Just smile and project confidence.”","none","","trap","Toxic positivity. Reassurance with no substance dismisses a legitimate fear and gives the mentee nothing to do on Monday.",{fx:[-12,-15,15]})
+ ]},
+{id:"d2", best:"directive", theme:"The Midnight Breakdown", tag:"New lecturer · acute overload",
+ cues:["Experience: first semester, no template","Time: class is tomorrow evening","Emotion: exhausted, considering resigning"],
+ setting:"Your mentee arrives the evening before their first big lecture, exhausted, holding a laptop like a shield.",
+ mentee:"“I have 110 slides for a 75-minute class. They aren’t formatted, I haven’t slept, and honestly I’m thinking about resigning.”",
+ coach:["What does a person in full overwhelm need in the next 30 minutes?","Will an interrogation or a shared task lower the stress faster?","How can you shrink the problem into steps they can see?"],
+ why:"Acute crisis plus a novice: this is when Directive support fits. Developmental talk about the long term would miss the immediate need, which is its known hazard.",
+ choices:[
+  C("“Sit down with me. We’ll delete 70 slides together right now, and then craft two checkpoint questions so you know exactly where the lesson goes.”","directive","feedback","best","Strong emergency rescue. Hands-on Directive help gave a visible, finishable task, lifted the threat of burnout, and showed you care.",{fx:[15,12,-35],badge:"Clutch Savior"}),
+  C("“Let’s step back. Where do you want your teaching career to be in five years? That will tell us what really matters.”","developmental","questioning","trap","Developmental Trap. Long-term thinking is valuable, but the immediate need was missed, and the mentee still has 110 slides and no sleep.",{fx:[-12,-8,18]}),
+  C("“110 slides is mathematically impossible. Why on earth would you do that?”","directive","none","fatal","Critical Directive failure. Criticism with no rescue, delivered to someone already considering resignation, caused burnout. Directive authority without care becomes shaming.",{over:"burnout"})
+ ]},
+{id:"d3", best:"directive", theme:"Grades Are Due Tomorrow", tag:"New adjunct · unfamiliar system",
+ cues:["Experience: never used the grading system","Time: grades due tomorrow at noon","Need: a step-by-step walkthrough"],
+ setting:"A new adjunct knocks on your door at 4 PM. Their final grades are due tomorrow and the gradebook shows only error messages.",
+ mentee:"“I’ve entered everything three times and the weights keep changing. I have never used this system before. What am I doing wrong?”",
+ coach:["Has your mentee ever used this system? What does that tell you about the style?","What can the mentee finish by tomorrow if you show them once?","How will you hand the task back after you model it?"],
+ why:"New to the task and a hard deadline: the Directive “Use it when” condition. Model first, then hand over.",
+ choices:[
+  C("“Let’s share your screen. I’ll set up the first weighting category while you watch, then you do the next one while I guide you, and we’ll check the totals against your syllabus.”","directive","feedback","best","Model, then hand over. You showed the first step and had the mentee do the next one, which builds competence without long-term dependency."),
+  C("“The manual is on the intranet. Read pages 4 to 9 tonight and message me if you’re still stuck.”","directive","none","ok","Directive in form, but the mentee is left alone with a manual and a deadline. Clear instructions help, but modeling would have worked far better here.",{fx:[-2,3,6],xp:10}),
+  C("“Honestly, everyone struggles with that system. You should have seen my first year. It’s a nightmare for all of us.”","peer","empathy","trap","Comfortable commiseration. It feels warm, but there was no actionable strategy, and the grades are still not entered.",{fx:[4,-6,8]}),
+  C("“What do you think would be a logical way for a gradebook to calculate weights?”","facilitative","questioning","trap","Premature questioning. With no experience of the system, the mentee has nothing to reason from, and the deadline is hours away.",{fx:[-12,-8,18]})
+ ]},
+
+/* ---------------- FACILITATIVE: mentee knows the basics but is stuck ---------------- */
+{id:"f1", best:"facilitative", theme:"The Front-Row Rebellion", tag:"Experienced lecturer · difficult student",
+ cues:["Experience: has taught the course successfully before","Situation: a classroom incident left the mentee shaken","Need: to make sense of it, not to be told"],
+ setting:"The blueprint worked, but a new problem has arrived in your office along with your mentee, who is visibly shaking with anger.",
+ mentee:"“A senior in the front row openly mocked my instructions in front of everyone, and the whole room laughed. I want to file disciplinary conduct charges. I will not be disrespected like that.”",
+ coach:["What might the student’s mockery signal beneath the surface?","The mentee has foundational experience now. What does that allow you to do?","Which comes first: the policy, or the mentee’s feelings and clarity of the instruction?"],
+ why:"The mentee knows the basics but is stuck on a diagnosis, so questions help them find their own answer. Acknowledge feelings first, then probe.",
+ choices:[
+  C("“That sounds humiliating, and your anger makes sense. Before we decide anything, what do you think was confusing about the instruction? And what did you expect the class to do?”","facilitative","empathy","best","Validate first, then question. You acknowledged the feeling and surfaced the expectation gap, so the mentee leaves with a reflective lens instead of a grievance.",{fx:[12,16,-20],xp:45,badge:"Socratic Sensei"}),
+  C("“Report it to the Dean of Students today. Behavior like that cannot be tolerated. Send the email before lunch.”","directive","none","trap","Directive Escalation. Telling a capable mentee what to do skipped diagnosis, escalated a teachable moment, and encouraged reliance on your decisions.",{fx:[-8,-14,20]}),
+  C("“Students today have zero respect. Next class, hit them with surprise pop quizzes and let them feel it.”","peer","none","trap","Cynical complicity. Commiseration raised trust briefly, but gave no instructional strategy and modeled punitive teaching.",{fx:[4,-20,10]})
+ ]},
+{id:"f2", best:"facilitative", theme:"Breaking Learned Helplessness", tag:"Capable colleague · dependency cycle",
+ cues:["Experience: strong subject expert, has set exams before","Pattern: sends you everything for approval","Need: confidence in their own judgment"],
+ setting:"Midterm week. Your mentee has begun sending you drafts of everything, and tonight a long document arrives with an anxious message.",
+ mentee:"“Could you please proofread and approve all 40 questions of my midterm before I print them? I just don’t trust myself to get it right without you.”",
+ coach:["What does the mentee gain, and lose, when you approve all 40 questions?","What does the mentee already know about assessment design?","How can the mentee, not you, become the final authority?"],
+ why:"The colleague is capable but dependent. Answering for them keeps the habit; questions build independence.",
+ choices:[
+  C("“I trust your expertise. Walk me through how these questions align with Bloom’s levels. Then let’s calibrate the rubric together, and you make the final call.”","facilitative","questioning","best","Facilitative calibration. You affirmed their expertise, asked them to explain their own alignment, and left the decision with them, which is how dependency is broken.",{fx:[10,18,-15],xp:45}),
+  C("“Email it to me and I’ll fix any awkward questions tonight.”","directive","none","trap","Enabling. Relief is immediate, but you reinforced the belief that the mentee cannot work without approval, which is the Directive hazard of dependency.",{fx:[4,-25,-10]}),
+  C("“Honestly, all of us doubt our exams. Just print it and hope for the best.”","peer","empathy","trap","Empathy without challenge. It normalizes the doubt, but nobody examined the exam, and the mentee’s confidence did not change.",{fx:[3,-8,2]})
+ ]},
+{id:"f3", best:"facilitative", theme:"The Silent Classroom", tag:"Associate professor · stuck on participation",
+ cues:["Experience: 8 years of teaching, solid fundamentals","Situation: students never answer questions","Need: diagnosing the problem themselves"],
+ setting:"An associate professor who has taught for eight years stops you in the corridor, tired of speaking into silence.",
+ mentee:"“I’ve tried everything. I ask questions and nobody answers. I stand there, count to five, and then end up answering myself. I’m starting to dread this class.”",
+ coach:["What would you paraphrase back to show you heard the frustration?","What might happen in the seconds after the question is asked?","What would the mentee try if they were a student in that room?"],
+ why:"The mentee knows the basics but is stuck, so open questions can unlock what they already know. Questions should follow listening.",
+ choices:[
+  C("“It sounds exhausting to talk into silence and then answer yourself. Walk me through the ten seconds after you ask a question. What happens, and what do you think the students are thinking?”","facilitative","listening","best","Listening and questioning together. You paraphrased the feeling, then used an open question to help the mentee examine the moment themselves."),
+  C("“Try think-pair-share. Ask a question, have them talk in pairs for one minute, then call on a pair.”","directive","feedback","ok","A useful technique, but delivered as an answer. The mentee might try it, though they did not diagnose the cause and may return for the next fix.",{fx:[2,2,-3],xp:15}),
+  C("“Students these days just don’t speak up. It’s the phones, it’s that generation. Nothing you can do.”","peer","none","trap","Commiseration that closes the door. Blaming the students removed the mentee’s agency, and no strategy was explored.",{fx:[3,-14,8]})
+ ]},
+{id:"f4", best:"facilitative", theme:"The Harsh Evaluation Comments", tag:"Lecturer · hurt by student feedback",
+ cues:["Experience: several semesters of teaching","Situation: painful student comments on the course evaluation","Need: to process feelings, then find the pattern"],
+ setting:"Course evaluations are out. Your mentee has printed the open comments and put them on your desk, folded in half.",
+ mentee:"“Somebody wrote that my lectures are ‘a waste of time.’ I’ve been rereading it all night. Maybe I’m just not cut out for this.”",
+ coach:["What feeling is under the words, and how can you name it?","What pattern could the mentee find across all the comments?","How can the mentee, not you, decide what to change?"],
+ why:"The mentee has the basics but is stuck in a painful moment. Acknowledge feelings, then ask questions that guide the mentee to a pattern and their own action.",
+ choices:[
+  C("“That comment would sting anyone. Thank you for showing me. When you read all the comments together, what themes come up, and which one would you most like to act on first?”","facilitative","empathy","best","You acknowledged the feeling, then guided the mentee from one hurtful line to a pattern and their own next step."),
+  C("“Ignore them. Students always complain, and evaluations don’t really matter.”","none","","trap","Dismissal. It brushed aside a real concern, did not help the mentee grow, and left them feeling unheard.",{fx:[-10,-10,10]}),
+  C("“Here’s what to change: shorter lectures, more examples, and post slides earlier. Do those three things next term.”","directive","feedback","ok","Specific and actionable, but you decided for a capable mentee and skipped the feelings. The advice may help, though the mentee did not diagnose the issue themselves.",{fx:[1,4,2],xp:15})
+ ]},
+
+/* ---------------- DEVELOPMENTAL: shaping a career or research path ---------------- */
+{id:"v1", best:"developmental", theme:"The 5-Year Tenure Blindspot", tag:"Junior colleague · research agenda",
+ cues:["Today: teaching evaluations are excellent","Gap: zero papers started","Horizon: a five-year promotion clock"],
+ setting:"Weeks later, teaching is stable. Student evaluations are excellent. But when you open your mentee’s annual file, something is missing.",
+ mentee:"“Great news! I’ve volunteered for three clubs and two committees this term. I love being involved. Research? Well… I haven’t really started writing anything yet, but I’m sure it will come.”",
+ coach:["If you reverse-engineer the tenure file five years out, what must exist by year three?","What is the cost of saying yes to every service request?","Who protects the mentee’s writing time if you do not?"],
+ why:"Today’s work is fine, so the gap is a long-term career plan. Developmental mentoring shapes a research path around the mentee’s goals.",
+ choices:[
+  C("“Your teaching evaluations are strong, and I’m proud of that. But I’ll be candid: the research quota is real, and zero papers is risky. Let’s decline two of those commitments and block two protected mornings a week for writing, with a draft by the end of term.”","developmental","feedback","best","Developmental mentoring at its best: candid truth about quotas, a boundary against service overload, and a concrete SMART writing plan.",{fx:[12,20,-10],xp:50,badge:"Tenure Architect"}),
+  C("“Fantastic! Getting involved is how people become visible around here. Keep saying yes.”","none","","trap","Yes-person trap. Trust rose because the praise felt warm, but you endorsed a path to an empty research record.",{fx:[6,-22,15]}),
+  C("“You need three papers. Drop everything else and write, starting today.”","directive","feedback","trap","Correct diagnosis, wrong delivery. An ultimatum with no plan, no boundaries and no shared goal raised stress. Developmental mentoring builds the roadmap with the mentee.",{fx:[-8,4,20]})
+ ]},
+{id:"v2", best:"developmental", theme:"Four Topics, No Agenda", tag:"Junior researcher · scattered focus",
+ cues:["Today: teaching is on track","Gap: no coherent research agenda","Horizon: the promotion file in four years"],
+ setting:"Your mentee proudly shows you a list of research ideas that keeps growing. None has become a draft.",
+ mentee:"“I’ve got four projects I’m excited about: blockchain in accounting, student wellbeing, a pedagogy study, and a case series. I want to do them all this year!”",
+ coach:["Which question could anchor the next five years of this mentee’s work?","What would a three-year publication timeline look like?","How do you protect the mentee’s enthusiasm while adding focus?"],
+ why:"A junior colleague needs a research agenda built around their own goals and tied to the long-term promotion plan.",
+ choices:[
+  C("“I love the energy. Let’s map them against your five-year goals: which one question could anchor your agenda, and which projects can wait? Then we’ll draft a three-year timeline with one paper target per semester.”","developmental","questioning","best","Developmental. You honored the enthusiasm, tied choices to long-term goals, and left with a shared timeline."),
+  C("“Which of the four excites you most right now?”","facilitative","questioning","ok","A good question, but the conversation stopped there. Without linking to promotion requirements and a timeline, the career path is still unshaped.",{fx:[3,4,-2],xp:15}),
+  C("“Pick whichever topic is hottest right now. That’s where the citations are.”","directive","none","trap","Directive shortcut. Chasing trends ignores the mentee’s goals and strengths, and leaves them dependent on your opinion of what is hot.",{fx:[-6,-8,6]}),
+  C("“Ha, I’m the same. I start ten projects a year and finish two. Just enjoy it.”","peer","empathy","trap","Peer-style commiseration that offers no expert challenge. It builds rapport but no plan, which is the Peer-Based hazard.",{fx:[5,-12,4]})
+ ]},
+{id:"v3", best:"developmental", theme:"Should I Chair the Committee?", tag:"Junior faculty · service request",
+ cues:["Today: teaching is stable, workload is heavy","Situation: department asks the mentee to chair a committee","Horizon: promotion depends on research output"],
+ setting:"Your mentee arrives with an email from the chair of the department asking them to coordinate an accreditation committee.",
+ mentee:"“I feel I can’t say no. It would be an honor, and maybe it would help my promotion? But I’m already behind on my writing.”",
+ coach:["What does this role give the mentee toward promotion, and what does it cost?","How could the mentee negotiate rather than just accept or refuse?","How does this connect to the mentee’s own goals?"],
+ why:"Today’s teaching is fine; the question is long-term. Developmental mentoring links decisions to the mentee’s career goals and boundaries.",
+ choices:[
+  C("“Let’s check it against your goals. What does it give you toward promotion, and what does it cost in writing hours? If you accept, we can negotiate a lighter teaching load and a defined end date, and I’ll help you word the reply.”","developmental","questioning","best","You helped the mentee weigh the decision against their own goals and gave them a negotiation option, not just yes or no."),
+  C("“Say yes! People who take on responsibility get noticed and promoted.”","none","","trap","Yes-person trap. The mentee’s writing time and long-term goals were not part of the advice.",{fx:[6,-18,12]}),
+  C("“Absolutely not. Decline today. Research is all that counts.”","directive","none","trap","Blunt directive. The principle may be right, but it ignores department politics and the mentee’s own reasoning, and offers no way to say no gracefully.",{fx:[-6,-4,10]})
+ ]},
+
+/* ---------------- PEER-BASED: colleagues at a similar stage ---------------- */
+{id:"p1", best:"peer", theme:"Two Colleagues, One Online Tool", tag:"Mid-career peers · piloting EdTech",
+ cues:["Experience: both mid-career, similar level","Goal: both want to improve online teaching","Relationship: equals, neither is the expert"],
+ setting:"A fellow mid-career colleague from your school asks for advice on improving their online teaching. You have the same goal and neither of you is an expert.",
+ mentee:"“I’d like to make my online sessions less like talking at a screen. I’ve heard polling and breakout tools help, but I don’t know where to start. You?”",
+ coach:["Who is the expert in this conversation?","How might you both learn and teach at once?","What would make this exchange two-way?"],
+ why:"Equals with a shared goal: both can teach and learn. Peer-Based fits colleagues at a similar stage.",
+ choices:[
+  C("“Same here. Let’s each try one tool this month, then compare notes on what worked. I’ll sit in on your session and you can sit in on mine, so we each get fresh eyes.”","peer","feedback","best","Reciprocal and practical. You shared the challenge, committed to a concrete experiment, and set up two-way observation."),
+  C("“I’ll test them all, then teach you what I find. Give me a month.”","directive","none","ok","Helpful, but it turned equals into expert and student. The exchange became one-way.",{fx:[2,2,-2],xp:10}),
+  C("“We’re both experienced. We already know what works. Let’s just keep doing what we do.”","none","","trap","No expert challenge. Staying comfortable meant nobody pushed either of you to try anything new.",{fx:[4,-12,4]})
+ ]},
+{id:"p2", best:"peer", theme:"The Nervous Observation", tag:"Colleagues · psychological safety",
+ cues:["Experience: peers at a similar rank","Goal: reciprocal classroom observation","Barrier: the colleague fears being judged"],
+ setting:"You and a colleague agreed to try classroom observation. At the last minute they hesitate.",
+ mentee:"“I’m a bit nervous about someone watching me teach. Last time I was observed, it felt like an audit.”",
+ coach:["What can you do to make this feel safe?","How can you show that you are also vulnerable?","What should each of you look for?"],
+ why:"Peer-Based mentoring builds safety through reciprocity. Equals take turns being observer and observed.",
+ choices:[
+  C("“That makes sense, and I’m nervous about it too. Why don’t I go first and you watch me? Then we’ll each pick one thing we want the other to look at, and share notes afterwards, no scores.”","peer","empathy","best","You acknowledged the feeling, modeled vulnerability, and made observation reciprocal and mutual."),
+  C("“I’ll sit in and send you a list of what to fix.”","directive","feedback","trap","Hierarchy returned. This turned a peer exchange into an audit, which is exactly what the mentee feared.",{fx:[-10,-8,12]}),
+  C("“You’re a great teacher, there’s no need for anyone to observe you.”","none","","trap","Comfortable but empty. It avoided the discomfort and the learning.",{fx:[4,-10,3]})
+ ]},
+{id:"p3", best:"peer", theme:"Group Work Online", tag:"Peers · co-designing assessment",
+ cues:["Experience: both teach hybrid sections, similar rank","Goal: assess online group work fairly","Relationship: neither has solved it"],
+ setting:"Over coffee, a peer mentions they are stuck on assessing online group projects. You are as well.",
+ mentee:"“Students complain that some people carry the group and others vanish. I have no idea how to grade it fairly in an online course. Have you cracked it?”",
+ coach:["What does each of you bring that the other lacks?","What small experiment could you both run?","How will you measure whether it worked?"],
+ why:"A shared problem between equals: co-design, test and compare. Peer-Based works because no one has the answer.",
+ choices:[
+  C("“Not yet, but let’s crack it together. I’ll try peer ratings with my rubric and you try a short group reflection. In six weeks we’ll compare what students said.”","peer","feedback","best","A two-way plan with an experiment on each side, a deadline, and a way to compare."),
+  C("“I’ve got a rubric from my old course. Just copy it, it’ll work.”","directive","feedback","ok","Generous, but one-way and untested. Your colleague would learn less than if you had adapted it together.",{fx:[2,2,0],xp:10}),
+  C("“Group work online is always a disaster. Everyone hates it, so don’t stress.”","peer","empathy","trap","Commiseration without strategy. It felt good and went nowhere.",{fx:[4,-12,6]})
+ ]},
+
+/* ---------------- SMART OBJECTIVES (Developmental / planning) ---------------- */
+{id:"m1", best:"developmental", smart:true, theme:"Strengthen Technical Expertise", tag:"Mentoring plan · write a SMART objective",
+ cues:["Mentee’s wish: “strengthen technical expertise”","Task: turn the wish into one objective","Test: Specific, Measurable, Achievable, Relevant, Time-bound"],
+ setting:"You are drafting the Objectives section of the Mentoring Action Plan with your colleague.",
+ mentee:"“I want to strengthen my technical expertise with the learning platform and digital tools. Can we put that in our plan?”",
+ coach:["What exactly will your mentee do, with whom, and in which steps?","How will you both know when it is done?","Is the timeline realistic for this person’s workload?"],
+ why:"A SMART objective turns a vague wish into a concrete roadmap: Specific, Measurable, Achievable, Relevant, Time-bound.",
+ choices:[
+  C("“Let’s write it down: over the next four months you’ll learn to build and run your course in the LMS through three hands-on sessions with me, and you’ll set up two online quizzes on your own before the midterm.”","developmental","feedback","best","All five elements are present: specific actions, measurable outcomes (two quizzes), achievable (three sessions), relevant to the course, and a four-month deadline.",{sm:"SMART"}),
+  C("“Let’s say you’ll become confident with the LMS and digital tools by the end of the year, and we’ll check in as needed.”","developmental","none","ok","Time-bound and relevant, but nothing is specific or measurable, so neither of you can tell whether you succeeded.",{sm:"RT",fx:[0,2,0],xp:10}),
+  C("“Great goal. Keep exploring new tools every week and you’ll get there.”","none","","trap","A wish, not an objective. No definition of success and no deadline.",{sm:"",fx:[-4,-8,5]}),
+  C("“You will complete the full 40-hour vendor certification and master every feature in two weeks.”","directive","none","trap","Specific and time-bound, but it fails the Achievable test. An impossible target sets the mentee up for disappointment.",{sm:"SMT",fx:[-6,-6,12]})
+ ]},
+{id:"m2", best:"developmental", smart:true, theme:"Improve Presentation Skills", tag:"Mentoring plan · write a SMART objective",
+ cues:["Mentee’s wish: “improve presentation skills”","Task: one objective for the plan","Test: Specific, Measurable, Achievable, Relevant, Time-bound"],
+ setting:"At your second planning session, your colleague wants to work on presenting at seminars and conferences.",
+ mentee:"“I freeze when I present my research. I’d love to get better. Can you help me write that as a goal?”",
+ coach:["What behavior do you want to see change?","What evidence would show progress?","What is a stretch but still achievable?"],
+ why:"The objective must be concrete, observable and time-limited so that progress can be reviewed at the next check-in.",
+ choices:[
+  C("“Over the next three months you’ll give two 15-minute talks at our department seminar, rehearse each once with me, and use a peer rubric. The target is at least four out of five on clarity and pacing by the second talk.”","developmental","feedback","best","SMART in every element: specific talks, measurable rubric score, achievable (two rehearsed talks), relevant to research dissemination, and a three-month deadline.",{sm:"SMART"}),
+  C("“You’ll give more talks this semester and get better at presenting.”","developmental","none","ok","Time-bound only. “More talks” and “better” cannot be measured, so progress will be hard to review.",{sm:"T",fx:[0,2,0],xp:10}),
+  C("“Watch plenty of TED talks and copy what the best speakers do.”","directive","none","trap","Not an objective: no outcome, measure or deadline, and imitation is not a plan.",{sm:"",fx:[-4,-8,5]}),
+  C("“By the end of the year you’ll present at twelve international conferences.”","directive","none","trap","Specific, measurable and time-bound, but not Achievable and weakly relevant to the actual need of confidence in front of a small audience.",{sm:"SMT",fx:[-6,-6,12]})
+ ]},
+{id:"m3", best:"developmental", smart:true, theme:"Build Leadership Presence", tag:"Mentoring plan · write a SMART objective",
+ cues:["Mentee’s wish: “build leadership presence”","Task: one objective for the plan","Test: Specific, Measurable, Achievable, Relevant, Time-bound"],
+ setting:"Your colleague hopes to be seen as a leader in the department but is not sure what that means in practice.",
+ mentee:"“People say I need more ‘leadership presence.’ I don’t even know what to do about it. Can we make that a goal?”",
+ coach:["What does leadership presence look like in observable behaviors?","Who can give feedback on it?","What is a small but real first step?"],
+ why:"Abstract goals such as “presence” become useful when defined as observable actions with evidence and a time frame.",
+ choices:[
+  C("“By the end of the semester you’ll lead three agenda items at department meetings, chair one curriculum subcommittee session that we debrief afterwards, and collect brief feedback from two colleagues on how clearly you set direction.”","developmental","feedback","best","Fully SMART: specific behaviors, measurable evidence (three items, one chair role, two feedback notes), achievable, relevant to leadership, bounded by the semester.",{sm:"SMART"}),
+  C("“You’ll take on more leadership roles soon and we’ll see how it feels.”","developmental","none","ok","Relevant, but with no specifics, measures or deadline.",{sm:"R",fx:[0,2,0],xp:10}),
+  C("“Leadership is confidence. Fake it until you make it.”","none","","trap","Slogan, not a goal. It gives the mentee nothing to do or measure.",{sm:"",fx:[-4,-8,5]}),
+  C("“You’ll be Dean within two years and chair every committee by the fall.”","directive","none","trap","Bold, measurable and time-bound, but not achievable and far from the mentee’s starting point.",{sm:"MT",fx:[-6,-6,12]})
+ ]}
+];
+
+const FAIL_INFO = {
+  trust:  {title:"Mentee Disengagement", icon:"💔", text:"Trust collapsed to 20% or below. Your mentee stopped coming to you and has withdrawn from the mentoring relationship."},
+  burnout:{title:"Burnout Overload",     icon:"🔥", text:"Mentee Stress reached 100%. Overwhelmed and unsupported, your mentee has reached breaking point."},
+  tenure: {title:"Tenure Clock Crisis",  icon:"⏳", text:"Growth fell to 15% or below. Your mentee’s professional independence has stalled, and the tenure clock keeps ticking."}
+};
+
+/* Workshop comparison table (from the deck) */
+const COMPARE = {
+  rows:["Who leads","Use it when","Watch out for","Example","Opening line"],
+  directive:    ["Mentor","Mentee is new to the task","Mentee becomes dependent","New lecturer, first large class","“Let me walk you through how I plan a large lecture.”"],
+  facilitative: ["Mentee, guided by questions","Mentee knows the basics but is stuck","Too slow when time is short","Associate professor, difficult student","“What have you tried so far, and what would you do next?”"],
+  developmental:["Shared, around the mentee’s goals","Shaping a career or research path","Immediate needs get missed","Junior colleague, research agenda","“Where do you want to be in five years, and what gets you there?”"],
+  peer:         ["Both, as equals","Colleagues are at a similar stage","No one brings expert challenge","Two mid-career faculty","“Let’s each try one tool this month and compare notes.”"]
+};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const clamp = v => Math.max(0, Math.min(100, v));
+const esc = s => { const d=document.createElement("div"); d.textContent=String(s==null?"":s); return d.innerHTML; };
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const sign = n => (n>0?"+":"")+n;
+const lsGet = (k,d) => { try{ const v=localStorage.getItem(k); return v==null?d:v; }catch(e){ return d; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } };
+
+const store = {
+  KEY:"lau_socratic_crucible_runs_v1",
+  load(){ try{ const v=JSON.parse(lsGet(this.KEY,"[]")); return Array.isArray(v)?v:[]; }catch(e){ return []; } },
+  save(arr){ return lsSet(this.KEY, JSON.stringify(arr)); }
+};
+
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+/* ============================================================
+   RANDOM SCENARIO DRAW: one scene per style + one SMART scene, shuffled.
+   Scenes played recently (across sessions) are avoided while alternatives exist.
+   ============================================================ */
+const RECENT_KEY="lau_crucible_recent_scenes";
+const RUN_LENGTH_NOTE = STYLE_KEYS.length + 1;
+function pickScenes(){
+  let recent=[]; try{ recent=JSON.parse(lsGet(RECENT_KEY,"[]")); }catch(e){}
+  if(!Array.isArray(recent)) recent=[];
+  const pickFrom = pool => {
+    const fresh=pool.filter(s=>!recent.includes(s.id));
+    const src=fresh.length?fresh:pool.slice().sort((a,b)=>recent.indexOf(a.id)-recent.indexOf(b.id)).slice(0,2);
+    return src[Math.floor(Math.random()*src.length)];
+  };
+  const chosen=STYLE_KEYS.map(k=>pickFrom(SCENES.filter(s=>s.best===k && !s.smart)));
+  chosen.push(pickFrom(SCENES.filter(s=>s.smart)));
+  lsSet(RECENT_KEY, JSON.stringify(recent.concat(chosen.map(s=>s.id)).slice(-10)));
+  return shuffle(chosen);
+}
+
+/* ============================================================
+   AUDIO (Web Audio API synthesizer)
+   ============================================================ */
+const audio = {
+  ctx:null, muted:false,
+  init(){ this.muted = lsGet("lau_crucible_muted","0")==="1"; this.paint(); },
+  get(){
+    if(!this.ctx){ const C2=window.AudioContext||window.webkitAudioContext; if(!C2) return null; this.ctx=new C2(); }
+    if(this.ctx.state==="suspended") this.ctx.resume();
+    return this.ctx;
+  },
+  tone(freq, start, dur, type="sine", vol=0.12){
+    if(this.muted) return;
+    const c=this.get(); if(!c) return;
+    const o=c.createOscillator(), g=c.createGain(), t0=c.currentTime+start;
+    o.type=type; o.frequency.setValueAtTime(freq,t0);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol,t0+0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+0.05);
+  },
+  success(){ [523.25,659.25,783.99,1046.5].forEach((f,i)=>this.tone(f,i*0.07,0.9,"triangle",0.09)); },
+  warn(){ this.tone(110,0,0.5,"sawtooth",0.09); this.tone(103.8,0.05,0.5,"sawtooth",0.07); this.tone(82.4,0.25,0.6,"sawtooth",0.08); },
+  tick(){ this.tone(880,0,0.08,"square",0.04); },
+  pick(){ this.tone(660,0,0.09,"sine",0.06); },
+  fanfare(){
+    [[523.25,0],[659.25,0.15],[783.99,0.3],[1046.5,0.45]].forEach(([f,t])=>this.tone(f,t,0.35,"triangle",0.12));
+    [523.25,659.25,783.99,1046.5].forEach(f=>this.tone(f,0.7,1.4,"triangle",0.08));
+  },
+  toggle(){ this.muted=!this.muted; lsSet("lau_crucible_muted",this.muted?"1":"0"); this.paint(); if(!this.muted) this.tone(660,0,0.12,"sine",0.08); },
+  paint(){ const b=$("#btn-mute"); b.textContent=this.muted?"🔇":"🔊"; b.setAttribute("aria-pressed",this.muted); }
+};
+
+/* ============================================================
+   CONFETTI
+   ============================================================ */
+function confetti(){
+  if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv=$("#confetti"), cx=cv.getContext("2d");
+  cv.width=innerWidth; cv.height=innerHeight;
+  const colors=["#7C3AED","#059669","#D97706","#1E3A8A","#EF4444","#F59E0B"];
+  const ps=Array.from({length:170},()=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    w:6+Math.random()*7, h:8+Math.random()*10, c:colors[Math.floor(Math.random()*colors.length)],
+    vx:-2+Math.random()*4, vy:2+Math.random()*4, r:Math.random()*6, vr:-.2+Math.random()*.4
+  }));
+  const start=performance.now();
+  (function frame(now){
+    const el=now-start;
+    cx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.04; p.r+=p.vr;
+      cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r);
+      cx.globalAlpha=Math.max(0,1-el/4500);
+      cx.fillStyle=p.c; cx.fillRect(-p.w/2,-p.h/2,p.w,p.h); cx.restore();
+    });
+    if(el<4500) requestAnimationFrame(frame); else cx.clearRect(0,0,cv.width,cv.height);
+  })(start);
+}
+
+/* ============================================================
+   GAME STATE + ENGINE
+   ============================================================ */
+const TURN_SECONDS = 45;
+let G = null;
+let timerHandle = null;
+
+function newGame(user){
+  G = {
+    user, scenes:pickScenes(), idx:0, diagPick:null,
+    trust:50, growth:45, stress:70, xp:0,
+    badges:[], path:[], left:TURN_SECONDS, locked:false, over:null, saved:false, timeouts:0, runId:null
+  };
+}
+
+function show(view){
+  ["signin","play","end"].forEach(v=>$("#view-"+v).classList.toggle("hidden", v!==view));
+  if(view!=="play") stopTimer();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function paintHUD(){
+  const set=(id,val)=>{
+    const el=$("#g-"+id); val=Math.round(val);
+    $(".row span:last-child",el).textContent=val+"%";
+    $("i",el).style.width=val+"%";
+    const danger = (id==="trust"&&val<=35)||(id==="growth"&&val<=30)||(id==="stress"&&val>=85);
+    el.classList.toggle("danger",danger);
+  };
+  set("trust",G.trust); set("growth",G.growth); set("stress",G.stress);
+  $("#hud-xp").textContent="⭐ "+G.xp+" XP";
+}
+
+function paintTimer(){
+  $("#timer-val").textContent=G.left;
+  const low=G.left<=10;
+  $("#hud-timer").classList.toggle("low",low);
+  $("#timerbar").classList.toggle("low",low);
+  $("#timerbar i").style.width=(G.left/TURN_SECONDS*100)+"%";
+}
+
+function startTimer(){
+  stopTimer();
+  G.left=TURN_SECONDS; paintTimer();
+  timerHandle=setInterval(()=>{
+    if(G.locked) return;
+    G.left--;
+    if(G.left<=5 && G.left>0) audio.tick();
+    if(G.left<=0){ onTimeout(); return; }
+    paintTimer();
+  },1000);
+}
+function stopTimer(){ clearInterval(timerHandle); timerHandle=null; }
+
+function onTimeout(){
+  G.timeouts++;
+  G.trust=clamp(G.trust-10); G.growth=clamp(G.growth-10); G.stress=clamp(G.stress+15);
+  audio.warn(); toast("⏱ You hesitated: −10 Trust, −10 Growth, +15 Stress");
+  paintHUD();
+  const fail=checkFail();
+  if(fail){ G.over=fail; G.locked=true; stopTimer(); setTimeout(()=>endGame("failed"),900); return; }
+  G.left=TURN_SECONDS; paintTimer();
+}
+
+function checkFail(){
+  if(G.trust<=20) return "trust";
+  if(G.stress>=100) return "burnout";
+  if(G.growth<=15) return "tenure";
+  return null;
+}
+
+function renderScene(){
+  const sc=G.scenes[G.idx];
+  G.locked=false; G.diagPick=null;
+  const keys=["A","B","C","D"];
+  const opts=shuffle(sc.choices);
+  $("#scene").innerHTML=`
+    <div class="scene-head">
+      <span class="pill navy">Scene ${G.idx+1} of ${G.scenes.length}</span>
+      <span class="pill violet">${esc(sc.tag)}</span>
+    </div>
+    <h2>${esc(sc.theme)}</h2>
+    <div class="setting">${esc(sc.setting)}</div>
+    <div class="mentee"><b>Your mentee says</b>${esc(sc.mentee)}</div>
+    <div class="cues"><b>Read the situation</b><ul>${sc.cues.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>
+    <details class="coach">
+      <summary>Ask Socratic Reflection Coach</summary>
+      <ul>${sc.coach.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>
+    </details>
+    <div id="diag">
+      <h3>Step 1 · Which style does this moment call for?</h3>
+      <div class="diag-grid">
+        ${shuffle(STYLE_KEYS).map(k=>`<button class="diagbtn" data-k="${k}"><b>${esc(STYLES[k].name)}</b><small>“${esc(STYLES[k].motto)}”</small></button>`).join("")}
+      </div>
+    </div>
+    <div id="reply" class="hidden">
+      <h3>Step 2 · How do you respond?</h3>
+      <div class="choices" id="choices">
+        ${opts.map((c,i)=>`<button class="choice" data-i="${sc.choices.indexOf(c)}"><span class="key">${keys[i]}</span><span>${esc(c.q)}</span></button>`).join("")}
+      </div>
+    </div>
+    <div id="fb"></div>`;
+  $$("#diag .diagbtn").forEach(b=>b.addEventListener("click",()=>diagnose(b)));
+  $$("#choices .choice").forEach(b=>b.addEventListener("click",()=>choose(+b.dataset.i,b)));
+  paintHUD(); startTimer();
+}
+
+function diagnose(btn){
+  if(G.diagPick || G.locked) return;
+  G.diagPick=btn.dataset.k; audio.pick();
+  $$("#diag .diagbtn").forEach(b=>{ b.disabled=true; if(b===btn) b.classList.add("picked"); });
+  $("#reply").classList.remove("hidden");
+  $("#reply").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+const REACT = {
+  best:["Your mentee exhales and reaches for a pen. “Okay. I can actually do that.”","Their shoulders drop. “Thank you. That is exactly what I needed to hear.”","Your mentee nods slowly, then half-smiles. “That makes sense. Let’s do it.”"],
+  ok:["Your mentee nods politely. “Alright, I’ll try that.” There is a little hesitation in their voice.","“Okay… thanks.” They look partly helped, but not fully."],
+  trap:["Your mentee goes quiet. “Right. Okay. Thanks.” The energy has left the room.","Your mentee looks away. “I guess I’ll figure it out myself.”","A polite smile, but nothing has changed. “Thanks for your time.”"],
+  fatal:["Your mentee stares at you, closes the laptop and picks up their bag. “I think I’m done.”"]
+};
+
+function choose(i, btn){
+  if(G.locked || !G.diagPick) return;
+  G.locked=true; stopTimer();
+  const sc=G.scenes[G.idx], c=sc.choices[i];
+  $$("#choices .choice").forEach(b=>{ b.disabled=true; if(b===btn) b.classList.add("picked"); });
+
+  const diagOK = G.diagPick===sc.best;
+  G.trust=clamp(G.trust+c.fx[0]); G.growth=clamp(G.growth+c.fx[1]); G.stress=clamp(G.stress+c.fx[2]);
+  G.xp+=c.xp+(diagOK?10:0);
+  if(c.k==="fatal" || c.over) G.stress=100;
+  if(c.badge && !G.badges.includes(c.badge)) G.badges.push(c.badge);
+  G.path.push({sc, c, diagPick:G.diagPick, diagOK});
+  paintHUD();
+
+  const fail = c.over ? c.over : checkFail();
+  if(fail) G.over=fail;
+
+  const good = c.k==="best";
+  (good?audio.success():audio.warn());
+  const cls = good?"good":(c.k==="ok"||(c.fx[0]>0&&c.k!=="fatal")?"mixed":"bad");
+  const d=(label,v,xp)=>`<span class="delta ${xp?"xp":(label==="Stress"? (v<0?"up":"down") : (v>=0?"up":"down"))}">${label} ${sign(v)}${xp?"":"%"}</span>`;
+  const isLast = G.idx===G.scenes.length-1;
+  const nextBtn = fail ? `<button class="btn" id="btn-next">See what happened →</button>`
+               : isLast ? `<button class="btn" id="btn-next">Finish &amp; see my debrief →</button>`
+               : `<button class="btn" id="btn-next">Next scene →</button>`;
+  const SMART_NAMES=["Specific","Measurable","Achievable","Relevant","Time-bound"];
+  const missing=SMART_NAMES.filter((n,j)=>!(c.sm||"").includes("SMART"[j]));
+  const smartHTML = sc.smart ? `<div class="smart">${"SMART".split("").map(L=>`<span class="sm ${(c.sm||"").includes(L)?"on":"off"}">${L}</span>`).join("")}<small>${missing.length?"Missing: "+missing.join(", "):"All five elements present"}</small></div>` : "";
+  const mentorReact = pickOne(REACT[c.k]);
+
+  $("#fb").innerHTML=`
+    <div class="feedback ${cls}">
+      <div class="react">${esc(mentorReact)}</div>
+      <span class="pill ${good?"green":c.k==="ok"?"amber":"red"}">${good?"Strong choice":c.k==="ok"?"Partly effective":c.k==="fatal"?"Critical failure":"Distractor trap"}</span>
+      <span class="pill violet">Your reply: ${esc(STYLES[c.st].name)}${STYLES[c.st].motto?" · “"+esc(STYLES[c.st].motto)+"”":""}</span>
+      ${c.sk?`<span class="pill navy">Skill: ${esc(SKILLS[c.sk].name)}</span>`:""}
+      <div class="deltas">${d("Trust",c.fx[0])}${d("Growth",c.fx[1])}${d("Stress",c.fx[2])}${(c.xp+(diagOK?10:0))?d("XP",c.xp+(diagOK?10:0),true):""}</div>
+      ${smartHTML}
+      <p>${esc(c.f)}</p>
+      <div class="diagres ${diagOK?"ok":"no"}"><b>${diagOK?"✔ Sound read (+10 XP).":"✖ Different read."}</b> You chose <i>${esc(STYLES[G.diagPick].name)}</i>; this moment called for <b>${esc(STYLES[sc.best].name)}</b>. ${esc(sc.why)}</div>
+      ${c.badge?`<div class="badge-earn">🏅 Badge unlocked: ${esc(c.badge)}</div>`:""}
+      ${fail&&!c.over?`<p style="margin-top:10px"><b>⚠ ${esc(FAIL_INFO[fail].title)}</b> threshold reached.</p>`:""}
+      <div style="margin-top:12px">${nextBtn}</div>
+    </div>`;
+  $("#btn-next").focus({preventScroll:true});
+  $("#fb").scrollIntoView({behavior:"smooth",block:"nearest"});
+  $("#btn-next").addEventListener("click",()=>{
+    if(fail){ endGame("failed"); }
+    else if(isLast){ endGame("done"); }
+    else { G.idx++; renderScene(); window.scrollTo({top:0,behavior:"smooth"}); }
+  });
+}
+function pickOne(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+/* ============================================================
+   END OF GAME + DEBRIEF
+   ============================================================ */
+function dominantStyle(){
+  const cnt={directive:0,facilitative:0,developmental:0,peer:0}, order=[];
+  G.path.forEach(p=>{ const s=p.c.st; if(cnt[s]!==undefined){ cnt[s]++; if(!order.includes(s)) order.push(s);} });
+  if(!order.length) return "Mixed / None";
+  let best=order[0];
+  order.forEach(s=>{ if(cnt[s]>cnt[best]) best=s; });
+  return STYLES[best].name;
+}
+function diagAccuracy(){ return G.path.length ? Math.round(G.path.filter(p=>p.diagOK).length/G.path.length*100) : 0; }
+
+function runBadges(){
+  const out=G.badges.slice();
+  const add=b=>{ if(!out.includes(b)) out.push(b); };
+  const bests=G.path.filter(p=>p.c.k==="best");
+  if(G.path.length>=3 && diagAccuracy()>=80) add("Sharp Diagnostician");
+  if(STYLE_KEYS.every(k=>bests.some(p=>p.sc.best===k))) add("Style Switcher");
+  if(bests.some(p=>p.sc.smart)) add("SMART Crafter");
+  if(bests.filter(p=>p.c.sk==="listening"||p.c.sk==="empathy").length>=2) add("Active Listener");
+  return out;
+}
+
+function endGame(kind){
+  stopTimer(); G.locked=true;
+  const bests=G.path.filter(p=>p.c.k==="best").length;
+  const outcome = kind==="failed" ? "failed" : (bests>=Math.ceil(G.scenes.length*0.6) ? "success" : "practice");
+  const status = outcome==="failed" ? "Failed: "+FAIL_INFO[G.over].title : outcome==="success" ? "Success" : "Completed (Needs Practice)";
+  G.badges = runBadges();
+  if(!G.saved){
+    G.saved=true;
+    G.runId="LAU-"+Date.now().toString(36).toUpperCase().slice(-6)+Math.floor(Math.random()*36).toString(36).toUpperCase();
+    const runs=store.load();
+    runs.push({
+      id:G.runId, name:G.user.name, school:G.user.school, dept:G.user.dept, style:dominantStyle(),
+      trust:Math.round(G.trust), growth:Math.round(G.growth), stress:Math.round(G.stress),
+      diag:diagAccuracy(), xp:G.xp, scenes:G.path.map(p=>p.sc.id).join("|"),
+      status, date:new Date().toISOString(), commitment:null
+    });
+    if(!store.save(runs)) toast("Could not save results to LocalStorage (storage unavailable).");
+  }
+  renderEnd(outcome,status);
+  if(outcome==="success"){ audio.fanfare(); confetti(); }
+  else if(outcome==="failed") audio.warn();
+  else audio.success();
+}
+
+function renderEnd(outcome,status){
+  const failed=outcome==="failed";
+  const cls = failed?"fail":outcome==="success"?"ok":"warn";
+  const head = failed ? `${FAIL_INFO[G.over].icon} Simulation Over: ${FAIL_INFO[G.over].title}`
+             : outcome==="success" ? "🎉 Mentoring Mastery Achieved" : "📋 Simulation Complete: Room to Grow";
+  const blurb = failed ? FAIL_INFO[G.over].text
+    : outcome==="success" ? "You matched your mentoring style to your mentees’ needs in most scenes, and kept trust and independence moving up."
+    : "You completed every scene, but several replies were out of step with what the mentee needed. Review the debrief below, then play again for a fresh set of scenes.";
+
+  const traps=G.path.filter(p=>p.c.k!=="best");
+  const bests=G.path.filter(p=>p.c.k==="best");
+  const steps=G.path.map((p,i)=>{
+    const c=p.c, k=c.k==="best"?"best":c.k==="ok"?"mid":"trap";
+    return `<div class="step ${k}">
+      <b>Scene ${i+1} · ${esc(p.sc.theme)}</b>
+      <span class="pill ${c.k==="best"?"green":c.k==="ok"?"amber":"red"}">${c.k==="best"?"High pedagogical EI":c.k==="ok"?"Partly effective":c.k==="fatal"?"Critical failure":"Trap triggered"}</span>
+      <span class="pill violet">${esc(STYLES[c.st].name)}</span>
+      <span class="pill ${p.diagOK?"green":"amber"}">Diagnosis: ${p.diagOK?"✔ sound":"✖ called for "+esc(STYLES[p.sc.best].name)}</span>
+      <q>${esc(c.q)}</q>
+      <div>${esc(c.f)}</div></div>`;
+  }).join("");
+
+  const flex=STYLE_KEYS.map(k=>{
+    const total=G.path.filter(p=>p.sc.best===k).length, ok=G.path.filter(p=>p.sc.best===k&&p.c.k==="best").length;
+    const state = total===0 ? "na" : ok===total ? "ok" : ok>0 ? "mid" : "no";
+    return `<div class="tile ${state}"><b>${esc(STYLES[k].name)}</b><small>“${esc(STYLES[k].motto)}”</small><span>${total?ok+" / "+total+" handled well":"not reached"}</span></div>`;
+  }).join("");
+
+  const used=sk=>G.path.some(p=>p.c.sk===sk && (p.c.k==="best"||p.c.k==="ok"));
+  const skillRows=SKILL_KEYS.map(sk=>`<li class="${used(sk)?"yes":"no"}">${used(sk)?"☑":"☐"} <b>${esc(SKILLS[sk].name)}</b> — ${esc(SKILLS[sk].check)}</li>`).join("");
+
+  const tips=[];
+  if(G.timeouts) tips.push(`You ran out of time ${G.timeouts} time${G.timeouts>1?"s":""}. In a real conversation a prompt, warm response beats a perfect one.`);
+  if(diagAccuracy()<60) tips.push("Re-read the situation cues before you speak: Is the mentee new to the task? Do they know the basics but feel stuck? Is the question long-term? Are you equals?");
+  if(traps.some(p=>p.c.st==="facilitative")) tips.push("Facilitative questions are too slow when time is short and freeze a mentee who has no baseline. Check experience first.");
+  if(traps.some(p=>p.c.st==="directive")) tips.push("Directive support is powerful but must fade. Ask yourself: “Could my mentee make this call now?” Model once, then hand over.");
+  if(traps.some(p=>p.c.st==="developmental")) tips.push("Developmental talk is the wrong tool when an immediate need is urgent. Solve the fire, then return to the five-year plan.");
+  if(traps.some(p=>p.c.st==="peer")) tips.push("Peer-Based exchange needs expert challenge. Commiseration builds rapport, but follow it with a shared experiment.");
+  if(traps.some(p=>p.c.st==="none")) tips.push("Reassurance and rubber-stamping feel kind but replace mentoring. Pair empathy with a concrete next step.");
+  if(!tips.length) tips.push("Keep modeling this adaptive approach: diagnose readiness first, then pick the style. Replay for a new set of scenes.");
+
+  const cmp=COMPARE;
+  const cmpTable=`<div class="table-wrap"><table class="ref">
+    <thead><tr><th></th>${STYLE_KEYS.map(k=>`<th>${esc(STYLES[k].name)}<br><span class="pill violet">“${esc(STYLES[k].motto)}”</span></th>`).join("")}</tr></thead>
+    <tbody>${cmp.rows.map((r,i)=>`<tr><td><b>${esc(r)}</b></td>${STYLE_KEYS.map(k=>`<td>${esc(cmp[k][i])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+
+  $("#view-end").innerHTML=`
+    <div class="card outcome ${cls}">
+      <span class="pill ${failed?"red":outcome==="success"?"green":"amber"}">${esc(status)}</span>
+      <h1 style="margin-top:8px">${esc(head)}</h1>
+      <p style="margin:0">${esc(blurb)}</p>
+    </div>
+
+    <div class="card">
+      <h2>Executive Metrics Dashboard</h2>
+      <div class="kpis">
+        <div class="kpi g"><small>Final Trust</small><strong>${Math.round(G.trust)}%</strong></div>
+        <div class="kpi g"><small>Final Growth</small><strong>${Math.round(G.growth)}%</strong></div>
+        <div class="kpi r"><small>Mentee Stress</small><strong>${Math.round(G.stress)}%</strong></div>
+        <div class="kpi a"><small>Total XP</small><strong>${G.xp}</strong></div>
+      </div>
+      <div class="kpis" style="grid-template-columns:repeat(2,1fr)">
+        <div class="kpi"><small>Diagnosis accuracy (matching style to situation)</small><strong>${diagAccuracy()}%</strong></div>
+        <div class="kpi"><small>Strong replies</small><strong>${bests.length} / ${G.path.length}</strong></div>
+      </div>
+      <h3 style="margin-top:18px">Unlocked Badges</h3>
+      <div class="badges">${G.badges.length?G.badges.map(b=>`<span class="badge-earn">🏅 ${esc(b)}</span>`).join(""):`<span style="color:var(--muted)">No badges earned this run. Replay for a new set of scenes.</span>`}</div>
+      <p style="margin-top:14px;color:var(--muted)">Mentor: <b>${esc(G.user.name)}</b> · ${esc(G.user.school)} · ${esc(G.user.dept)} · Most-used style: <b>${esc(dominantStyle())}</b></p>
+    </div>
+
+    <div class="card">
+      <h2>Style Flexibility</h2>
+      <p style="color:var(--muted)">Each run includes a scene for every style. Green means you handled it well.</p>
+      <div class="tiles">${flex}</div>
+      <h3 style="margin-top:18px">Conversation skills checklist</h3>
+      <ul class="skills">${skillRows}</ul>
+    </div>
+
+    <div class="card">
+      <h2>Personalized Constructive Feedback</h2>
+      <p>You made <b>${bests.length}</b> strong choice${bests.length===1?"":"s"} and <b>${traps.length}</b> weaker or trap choice${traps.length===1?"":"s"} across ${G.path.length} scene${G.path.length===1?"":"s"}.</p>
+      ${steps}
+      <h3>Takeaways for your next mentoring conversation</h3>
+      <ul>${tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    </div>
+
+    <div class="card">
+      <h2>Mentorship Reference Guide</h2>
+      <p style="color:var(--muted)">The situation decides the style. Great mentors diagnose readiness, then switch.</p>
+      ${cmpTable}
+      <h3 style="margin-top:20px">The Art of Conversation: four skills</h3>
+      <div class="table-wrap"><table class="ref"><tbody>
+        <tr><td><b>Active Listening</b></td><td>Hear the meaning and emotion behind the words: summarize, paraphrase, validate.</td></tr>
+        <tr><td><b>Empathy</b></td><td>Acknowledge the mentee’s feelings to build psychological safety.</td></tr>
+        <tr><td><b>Powerful Questioning</b></td><td>Ask open questions (what, how, why) that prompt reflection.</td></tr>
+        <tr><td><b>Constructive Feedback</b></td><td>Give specific, actionable feedback on behavior, not personality.</td></tr>
+      </tbody></table></div>
+      <h3 style="margin-top:20px">SMART objectives and the Mentoring Action Plan</h3>
+      <p><b>S</b>pecific · <b>M</b>easurable · <b>A</b>chievable · <b>R</b>elevant · <b>T</b>ime-bound. A mentorship plan has three components: <b>Objectives</b> (in SMART form), <b>Roles &amp; Responsibilities</b>, and <b>Communication</b> (how and how often you connect). The Mentoring Action Plan template has seven parts: mentee &amp; mentor information, SMART objectives (3 to 5), meeting cadence &amp; norms, action plan, progress summary, risks &amp; responses, and a review date.</p>
+    </div>
+
+    <div class="card">
+      <h2>My Mentoring Commitment</h2>
+      <p style="color:var(--muted)">Complete these three lines and keep them. Your answers are saved with your run.</p>
+      <form id="commit-form" class="form" style="max-width:none;margin-top:8px">
+        <div class="full"><label for="cm-style">One style I will try</label>
+          <select id="cm-style"><option value="">Choose a style…</option>${STYLE_KEYS.map(k=>`<option>${esc(STYLES[k].name)} (“${esc(STYLES[k].motto)}”)</option>`).join("")}</select></div>
+        <div class="full"><label for="cm-skill">One skill I will practice</label>
+          <select id="cm-skill"><option value="">Choose a skill…</option>${SKILL_KEYS.map(k=>`<option>${esc(SKILLS[k].name)}</option>`).join("")}</select></div>
+        <div class="full"><label for="cm-step">One step I will take by next week</label>
+          <input id="cm-step" maxlength="160" placeholder="e.g. Ask my mentee what they have tried before I offer advice"></div>
+        <div class="full" style="text-align:center"><button class="btn ghost" type="submit">Save my commitment</button> <span id="cm-msg" class="err" style="color:var(--green)"></span></div>
+      </form>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <button class="btn" id="btn-replay">↻ Play Again with New Scenes</button>
+      <button class="btn ghost" id="btn-view-results">View Cohort Analytics</button>
+    </div>`;
+  $("#btn-replay").addEventListener("click",()=>{ newGame(G.user); show("play"); renderScene(); });
+  $("#btn-view-results").addEventListener("click",()=>switchTab("results"));
+  $("#commit-form").addEventListener("submit",e=>{
+    e.preventDefault();
+    const cm={style:$("#cm-style").value, skill:$("#cm-skill").value, step:$("#cm-step").value.trim()};
+    if(!cm.style||!cm.skill||!cm.step){ $("#cm-msg").style.color="var(--red)"; $("#cm-msg").textContent="Please complete all three lines."; return; }
+    const runs=store.load(), r=runs.find(x=>x.id===G.runId);
+    if(r){ r.commitment=cm; store.save(runs); }
+    $("#cm-msg").style.color="var(--green)"; $("#cm-msg").textContent="Saved ✔";
+  });
+  show("end");
+}
+
+/* ============================================================
+   COHORT ANALYTICS
+   ============================================================ */
+const COLS=[
+  ["id","ID"],["name","Name"],["school","LAU School"],["dept","Department"],["style","Dominant Style"],
+  ["trust","Trust %"],["growth","Growth %"],["stress","Stress %"],["diag","Diagnosis %"],["status","Status"],["date","Date"]
+];
+let sortKey="date", sortDir=-1;
+
+function filteredRuns(){
+  const q=$("#res-search").value.trim().toLowerCase(), st=$("#res-status").value;
+  return store.load().filter(r=>{
+    if(st==="Success" && r.status!=="Success") return false;
+    if(st==="Trap" && !String(r.status).startsWith("Completed")) return false;
+    if(st==="Failed" && !String(r.status).startsWith("Failed")) return false;
+    if(!q) return true;
+    return [r.id,r.name,r.school,r.dept,r.style,r.status].join(" ").toLowerCase().includes(q);
+  });
+}
+
+function renderResults(){
+  const all=store.load(), n=all.length;
+  const avg=k=>n?Math.round(all.reduce((a,r)=>a+(+r[k]||0),0)/n):0;
+  $("#res-kpis").innerHTML=`
+    <div class="kpi"><small>Total Completed Runs</small><strong>${n}</strong></div>
+    <div class="kpi g"><small>Average Trust</small><strong>${n?avg("trust")+"%":"–"}</strong></div>
+    <div class="kpi g"><small>Average Growth</small><strong>${n?avg("growth")+"%":"–"}</strong></div>
+    <div class="kpi r"><small>Average Stress</small><strong>${n?avg("stress")+"%":"–"}</strong></div>`;
+
+  const rows=filteredRuns().sort((a,b)=>{
+    const x=a[sortKey], y=b[sortKey];
+    if(typeof x==="number" && typeof y==="number") return (x-y)*sortDir;
+    return String(x==null?"":x).localeCompare(String(y==null?"":y))*sortDir;
+  });
+  const arrow=k=>k===sortKey?(sortDir>0?" ▲":" ▼"):"";
+  const head=`<thead><tr>${COLS.map(([k,l])=>`<th class="sortable" data-k="${k}" tabindex="0" role="button">${l}${arrow(k)}</th>`).join("")}</tr></thead>`;
+  const body = rows.length ? rows.map(r=>{
+    const st=String(r.status);
+    const cls = st==="Success"?"green":st.startsWith("Failed")?"red":"amber";
+    return `<tr><td>${esc(r.id)}</td><td>${esc(r.name)}</td><td>${esc(r.school)}</td><td>${esc(r.dept)}</td><td>${esc(r.style)}</td>
+      <td>${r.trust}%</td><td>${r.growth}%</td><td>${r.stress}%</td><td>${r.diag==null?"–":r.diag+"%"}</td>
+      <td><span class="pill ${cls}">${esc(st)}</span></td><td>${esc(new Date(r.date).toLocaleString())}</td></tr>`;
+  }).join("") : `<tr><td colspan="${COLS.length}" class="empty">${n?"No runs match your filters.":"No completed runs yet. Finish a simulation to see results here."}</td></tr>`;
+  $("#res-table").innerHTML=head+`<tbody>${body}</tbody>`;
+  $$("#res-table th.sortable").forEach(th=>{
+    const go=()=>{ const k=th.dataset.k; if(k===sortKey) sortDir*=-1; else {sortKey=k; sortDir=1;} renderResults(); };
+    th.addEventListener("click",go);
+    th.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();go();} });
+  });
+}
+
+function csvCell(v){
+  let s=String(v==null?"":v);
+  if(/^[=+\-@\t\r]/.test(s)) s="'"+s;           // neutralise spreadsheet formulas
+  return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function exportCSV(){
+  const runs=store.load();
+  if(!runs.length){ toast("No runs to export yet."); return; }
+  const head=["ID","Name","LAU School","Department","Dominant Style","Trust %","Growth %","Stress %","Diagnosis %","XP","Scenes","Status","Date","Commitment: Style","Commitment: Skill","Commitment: Step"];
+  const lines=[head.map(csvCell).join(",")].concat(runs.map(r=>{
+    const cm=r.commitment||{};
+    return [r.id,r.name,r.school,r.dept,r.style,r.trust,r.growth,r.stress,r.diag==null?"":r.diag,r.xp,r.scenes||"",r.status,r.date,cm.style||"",cm.skill||"",cm.step||""].map(csvCell).join(",");
+  }));
+  const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="socratic-crucible-cohort-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ============================================================
+   TABS + WIRING
+   ============================================================ */
+function switchTab(which){
+  const sim=which==="sim";
+  $("#panel-sim").classList.toggle("hidden",!sim);
+  $("#panel-results").classList.toggle("hidden",sim);
+  $("#tab-sim").classList.toggle("active",sim); $("#tab-sim").setAttribute("aria-selected",sim);
+  $("#tab-results").classList.toggle("active",!sim); $("#tab-results").setAttribute("aria-selected",!sim);
+  if(!sim) renderResults();
+  window.scrollTo({top:0});
+}
+
+$("#tab-sim").addEventListener("click",()=>switchTab("sim"));
+$("#tab-results").addEventListener("click",()=>switchTab("results"));
+$("#btn-mute").addEventListener("click",()=>audio.toggle());
+$("#res-search").addEventListener("input",renderResults);
+$("#res-status").addEventListener("change",renderResults);
+$("#btn-export").addEventListener("click",exportCSV);
+$("#btn-reset").addEventListener("click",()=>{
+  if(!store.load().length){ toast("History is already empty."); return; }
+  if(confirm("Delete all saved simulation runs on this device? This cannot be undone.")){
+    try{ localStorage.removeItem(store.KEY); }catch(e){}
+    renderResults();
+  }
+});
+
+$("#signin-form").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name=$("#f-name").value.trim(), school=$("#f-school").value, dept=$("#f-dept").value.trim();
+  const err=$("#signin-err");
+  if(!name||!school||!dept){ err.textContent="Please enter your name, school and department to begin."; return; }
+  err.textContent="";
+  lsSet("lau_crucible_user", JSON.stringify({name,school,dept}));
+  audio.get();                       // unlock audio on user gesture
+  newGame({name,school,dept});
+  show("play"); renderScene();
+});
+
+(function prefill(){
+  try{
+    const u=JSON.parse(lsGet("lau_crucible_user","null"));
+    if(u){ $("#f-name").value=u.name||""; $("#f-dept").value=u.dept||""; if(u.school) $("#f-school").value=u.school; }
+  }catch(e){}
+})();
+audio.init();
+
