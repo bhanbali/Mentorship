@@ -204,7 +204,7 @@ ul.skills{list-style:none;padding:0;margin:8px 0 0} ul.skills li{padding:4px 0} 
     <p style="color:var(--muted)">All Group Mode sessions run on this device. Data never leaves your browser.</p>
     <div class="kpis" id="res-kpis"></div>
     <div class="toolbar">
-      <input class="grow" id="res-search" type="search" placeholder="Search group or style…" aria-label="Search sessions">
+      <input class="grow" id="res-search" type="search" placeholder="Search group, case or style…" aria-label="Search sessions">
       <button class="btn ghost" id="btn-export">⬇ Export Results CSV</button>
       <button class="btn danger" id="btn-reset">Reset History</button>
     </div>
@@ -243,24 +243,57 @@ const COMPARE = {
   peer:         ["Both, as equals","Colleagues are at a similar stage","No one brings expert challenge","Two mid-career faculty","“Let’s each try one tool this month and compare notes.”"]
 };
 
-/* Choice helper: C(quote, style, kind, feedback, [trust, growth, stress], mentee reply) */
-const C = (q,st,k,f,fx,r) => ({q,st,k,f,fx,r});
+/* Choice helper: C(quote, style, kind, feedback) */
+const C = (q,st,k,f) => ({q,st,k,f});
 
-const CASE = {
-  id:"auditorium", best:"directive",
+/* The three cases. Each video sits next to this HTML file. */
+const CASES = [
+{
+  id:"auditorium", video:"Video.mp4", best:"directive",
   theme:"The 200-Seat Auditorium Shock", tag:"New lecturer · first large class",
-  setting:"It is 9:40 AM. Your mentee, a brand-new lecturer, appears at your door with red eyes and a laptop that has been open all night.",
+  intro:"A brand-new lecturer, exhausted after rewriting slides until 2 AM, has just learned they must teach a 200-student class next Monday. They have never taught more than a small group, fear losing control of the room, and don’t know where to start.",
   mentee:"“I just found out my section is 200 students. Next Monday. I was rewriting my slides at 2:00 AM and I still don’t know how I’ll keep the room from slipping out of my control.”",
   cues:["Experience: has never taught 200 students","Time: the first lecture is on Monday","Need: a plan, not a debate"],
   coach:["How much experience does your mentee have with a room this size?","Is this an immediate crisis or a reflective moment? What does the calendar say?","What does a stranded person need first: a map or a question?","What would each of you say first? What would you avoid saying?"],
   why:"The mentee is new to the task and has only a week, so the mentor leads.",
   choices:[
-    C("“Let’s build you a plan right now. Open with a five-minute hook, teach in three 15-minute chunks, and put a polling checkpoint after each chunk. I’ll write it on one page for Monday.”","directive","best","Textbook Directive mentoring. A novice facing a hard deadline needs clear, specific, actionable structure, and stress dropped because the unknown became a concrete plan.",[10,14,-25],"“Okay… that I can do. Hook, three chunks, polling. Can you send me that page tonight?”"),
-    C("“Before we touch the slides, I’m curious. When you imagine your ideal large classroom, what does it feel like to you, and what is the first thing you notice in it? Take a moment, there’s no rush, and think it through carefully.”","facilitative","trap","Premature Facilitation. Questions assume the mentee knows the basics. With no baseline for a 200-seat room it caused cognitive freeze, and Facilitative mentoring is also too slow when time is short.",[-16,-8,25],"“I… don’t know. I’ve never been in one. I just need to know what to do on Monday.”"),
-    C("“Try not to worry. You have a PhD, so you already know the material better than anyone in that room. Smile, project confidence, and the students will follow your lead. Honestly, nobody expects perfection in a first week.”","none","trap","Toxic positivity. Reassurance with no substance dismisses a legitimate fear and gives the mentee nothing to do on Monday.",[-12,-15,15],"“Right. Smile. Thanks.” They look down at the laptop, still no plan."),
-    C("“Just reuse my slides from last year and teach them exactly as they are. Don’t change anything, and it will be fine. I’ll send you the file in a minute.”","directive","ok","Quick structure, but a copy-paste with no explanation. The mentee gets through Monday without understanding why the lecture works or how to adapt it.",[3,-2,-8],"“Thank you, that helps. I’m just not sure I understand why it’s built that way.”")
+    C("“Let’s build you a plan right now. Open with a five-minute hook, teach in three 15-minute chunks, and put a polling checkpoint after each chunk. I’ll write it on one page for Monday.”","directive","best","Textbook Directive mentoring. A novice facing a hard deadline needs clear, specific, actionable structure, and stress dropped because the unknown became a concrete plan."),
+    C("“Before we touch the slides, I’m curious. When you imagine your ideal large classroom, what does it feel like to you, and what is the first thing you notice in it? Take a moment, there’s no rush, and think it through carefully.”","facilitative","trap","Premature Facilitation. Questions assume the mentee knows the basics. With no baseline for a 200-seat room it caused cognitive freeze, and Facilitative mentoring is also too slow when time is short."),
+    C("“Try not to worry. You have a PhD, so you already know the material better than anyone in that room. Smile, project confidence, and the students will follow your lead. Honestly, nobody expects perfection in a first week.”","none","trap","Toxic positivity. Reassurance with no substance dismisses a legitimate fear and gives the mentee nothing to do on Monday."),
+    C("“Just reuse my slides from last year and teach them exactly as they are. Don’t change anything, and it will be fine. I’ll send you the file in a minute.”","directive","ok","Quick structure, but a copy-paste with no explanation. The mentee gets through Monday without understanding why the lecture works or how to adapt it.")
   ]
-};
+},
+{
+  id:"rebellion", video:"Video2.mp4", best:"facilitative",
+  theme:"The Front-Row Rebellion", tag:"Experienced lecturer · difficult student",
+  intro:"An experienced associate professor, eight years into teaching, storms in after class. A student in the front row mocked their instructions in a silly voice and the whole room laughed. Humiliated, they plan to file a conduct complaint and ask you to agree they are right.",
+  mentee:"“Do you have five minutes? I need to vent, and then I need a decision. In my eleven o’clock, a senior in the front row repeated my instructions back to me in a silly voice, and the whole room laughed. Eight years of teaching, and I have never been so humiliated. I’m going to file a conduct complaint this afternoon. I just want you to tell me I’m right.”",
+  cues:["Experience: eight years of teaching, solid fundamentals","Situation: a classroom incident left the mentee shaken","Need: to make sense of it, not to be told what to do"],
+  coach:["What might the student’s mockery signal beneath the surface?","The mentee already has the skills. What does that allow you to do?","Which comes first: the policy, or the mentee’s feelings and what happened?","What would each of you say first? What would you avoid saying?"],
+  why:"The mentee knows the basics but is stuck, so questions help them find their own answer.",
+  choices:[
+    C("“That sounds humiliating, and I understand why you’re angry. Before we decide anything, what do you think confused the student, and what did you expect from the class?”","facilitative","best","Validate first, then question. You acknowledged the feeling and surfaced the expectation gap, so the mentee leaves with a reflective lens instead of a grievance."),
+    C("“Report it to the Dean of Students today. Behavior like that can’t be tolerated, and the longer you wait the weaker your case. Send the email before lunch and copy your head of department so it is on record.”","directive","trap","Directive Escalation. Telling a capable mentee what to do skipped diagnosis, escalated a teachable moment, and encouraged reliance on your decisions."),
+    C("“Students today have no respect for anyone. Surprise them with pop quizzes next class and let them feel what it costs to laugh at you. They need to learn that respect is not optional in your classroom.”","peer","trap","Cynical complicity. Commiseration raised trust briefly, but gave no instructional strategy and modeled punitive teaching."),
+    C("“Have a private word with the student after class and tell them plainly that mocking you in front of the room is not acceptable. Keep it calm and short.”","directive","ok","A direct, specific step that is better than discipline, but you decided for a capable mentee and skipped the cause of the incident.")
+  ]
+},
+{
+  id:"blindspot", video:"Video3.mp4", best:"developmental",
+  theme:"The Five-Year Blindspot", tag:"Junior colleague · research agenda",
+  intro:"A cheerful junior colleague shares good news: their teaching evaluations are the best in the department, and they have agreed to a club, a committee and an open-day team. Almost as an afterthought, they admit they haven’t started any research and hope there will be time.",
+  mentee:"“Great news! This term I’ve said yes to the student club, the curriculum committee, and the open-day team. My evaluations are the best in the department, and I feel like I’m finally finding my place here. Oh, and research? I haven’t really started writing anything yet. But there’ll be time, it always works out. Right?”",
+  cues:["Today: teaching evaluations are excellent","Gap: no research has been started","Horizon: a five-year promotion clock"],
+  coach:["If you reverse-engineer the promotion file five years out, what must exist by year three?","What is the cost of saying yes to every service request?","Who protects the mentee’s writing time if you do not?","What would each of you say first? What would you avoid saying?"],
+  why:"Today’s work is fine, so the gap is the long-term career plan.",
+  choices:[
+    C("“Your evaluations are strong and I’m proud of that. But the research quota is real, and zero papers is risky. Let’s decline two commitments and protect two mornings a week for writing.”","developmental","best","Developmental mentoring at its best: candid truth about the quota, a boundary against service overload, and a concrete plan for protected writing time."),
+    C("“Fantastic! Getting involved is exactly how people become visible around here, and the clubs will love you. Keep saying yes to everything that comes your way. Your popularity will do wonders for your file.”","none","trap","Yes-person trap. Trust rose because the praise felt warm, but you endorsed a path to an empty research record."),
+    C("“You need three papers. Drop everything else and write, starting today. Nothing else matters for promotion, so cancel the committees this week. Say it plainly to the chair and don’t apologize for it.”","directive","trap","Correct diagnosis, wrong delivery. An ultimatum with no plan, no boundaries and no shared goal raised stress. Developmental mentoring builds the roadmap with the mentee."),
+    C("“Let’s talk about it at your annual review. For now, enjoy the term, and we’ll look at the research side once the committees quiet down a little.”","developmental","ok","Postponing the conversation lets the gap grow. The intent is right, but there is no plan and no boundary on service.")
+  ]
+}
+];
 
 /* ============================================================
    UTILITIES
@@ -307,18 +340,24 @@ function confetti(){
   })(start);
 }
 
-/* The case video: Video.mp4 sits next to this HTML file */
-const VIDEO_SRC = "Video.mp4";
-function videoHTML(){
-  return `<div class="vbox"><video id="case-video" controls playsinline preload="metadata" src="${VIDEO_SRC}"></video></div>
-    <div class="err hidden" id="v-missing" role="alert">The video could not be loaded. Make sure ${VIDEO_SRC} is in the same folder as this page and the file name matches exactly.</div>`;
+/* The case video sits next to this HTML file */
+function videoHTML(c){
+  return `<div class="vbox"><video id="case-video" controls playsinline preload="metadata" src="${escAttr(c.video)}"></video></div>
+    <div class="err hidden" id="v-missing" role="alert">The video could not be loaded. Make sure ${esc(c.video)} is in the same folder as this page and the file name matches exactly.</div>`;
 }
 
 /* ============================================================
    GROUP ACTIVITY FLOW: watch -> discuss -> decide -> name the style -> feedback
    ============================================================ */
 const GSTAGES=["Watch","Discuss","Decide","Name the style","Feedback"];
-let gm={stage:0, group:"", opts:[], pick:null, style:null, rec:null};
+let gm={stage:0, group:"", c:null, played:[], opts:[], pick:null, style:null, rec:null};
+
+function startRandomCase(){
+  const left=CASES.filter(c=>!gm.played.includes(c.id)), pool=left.length?left:CASES;
+  gm.c=pool[Math.floor(Math.random()*pool.length)];
+  gm.opts=shuffle(gm.c.choices); gm.pick=null; gm.style=null; gm.rec=null; gm.stage=1;
+  gmRender();
+}
 
 function gmSteps(){
   return `<div class="steps">${GSTAGES.map((s,i)=>`<span class="${i+1===gm.stage?"on":i+1<gm.stage?"done":""}">${i+1}. ${s}</span>`).join("")}</div>`;
@@ -330,34 +369,36 @@ function gmRender(){
   if(gm.stage===0){
     root.innerHTML=`<div class="card hero">
       <span class="pill violet">Facilitated group activity</span>
-      <h1 style="margin-top:10px">${esc(CASE.theme)}</h1>
-      <p>Watch a short video of a new lecturer asking for help. Discuss as a group what you would do, agree on the best course of action, then name the mentorship style it reflects. You get feedback at the end. There is no clock.</p>
+      <h1 style="margin-top:10px">Mentoring Role Playing</h1>
+      <p>Watch a short video of a colleague asking for help. Discuss as a group what you would do, agree on the best course of action, then name the mentorship style it reflects. You get feedback at the end. There is no clock.</p>
       <form id="gm-form" class="form" autocomplete="off" novalidate>
         <div class="full"><label for="gm-group">Group or table name</label><input id="gm-group" maxlength="50" placeholder="Table 1" value="${escAttr(gm.group)}"></div>
         <div class="full err" id="gm-serr" role="alert"></div>
-        <div class="full" style="text-align:center"><button class="btn" type="submit">Start the activity →</button></div>
+        <div class="full" style="text-align:center"><button class="btn" type="submit">🎲 Get a random scenario</button></div>
       </form>
       <div class="style-grid">${STYLE_KEYS.map(k=>`<div><b>${STYLES[k].name}</b><small>“${STYLES[k].motto}”</small></div>`).join("")}</div>
     </div>`;
     $("#gm-form").addEventListener("submit",e=>{
       e.preventDefault();
-      gm.group=$("#gm-group").value.trim();
-      if(!gm.group){ $("#gm-serr").textContent="Please enter a group name."; return; }
-      gm.opts=shuffle(CASE.choices); gm.pick=null; gm.style=null; gm.rec=null; gm.stage=1; gmRender();
+      const name=$("#gm-group").value.trim();
+      if(!name){ $("#gm-serr").textContent="Please enter a group name."; return; }
+      if(name!==gm.group) gm.played=[];
+      gm.group=name; startRandomCase();
     });
     return;
   }
 
-  const head=`<div class="scene-head"><span class="pill navy">${esc(gm.group)}</span><span class="pill violet">${esc(CASE.tag)}</span></div><h2>${esc(CASE.theme)}</h2>${gmSteps()}`;
+  const c0=gm.c, head=`<div class="scene-head"><span class="pill navy">${esc(gm.group)}</span><span class="pill violet">${esc(c0.tag)}</span></div><h2>${esc(c0.theme)}</h2>${gmSteps()}`;
   let body="";
   if(gm.stage===1){
-    body=`${videoHTML()}
-      <div class="cues"><b>Read the situation</b><ul>${CASE.cues.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>
+    body=`<div class="setting">${esc(c0.intro)}</div>
+      ${videoHTML(c0)}
+      <div class="cues"><b>Read the situation</b><ul>${c0.cues.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>
       <div class="row-actions"><button class="btn" id="gm-next">We’ve watched it. Let’s discuss →</button></div>`;
   } else if(gm.stage===2){
-    body=`<div class="mentee"><b>The mentee says</b>${esc(CASE.mentee)}</div>
+    body=`<div class="mentee"><b>The mentee says</b>${esc(c0.mentee)}</div>
       <h3 style="margin-top:16px">Discuss as a group</h3>
-      <ul>${CASE.coach.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>
+      <ul>${c0.coach.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>
       <div class="facil"><b>Facilitator:</b> let everyone speak before the group decides. There is no timer, so ask for reasons, not just opinions.</div>
       <div class="row-actions"><button class="btn ghost" id="gm-back">← Back</button><button class="btn" id="gm-next">We’re ready to decide →</button></div>`;
   } else if(gm.stage===3){
@@ -387,7 +428,8 @@ function gmRender(){
     gm.stage++; gmRender(); window.scrollTo({top:0,behavior:"smooth"});
   });
   if(gm.stage===5){
-    $("#gm-again").addEventListener("click",()=>{ gm.stage=0; gmRender(); window.scrollTo({top:0,behavior:"smooth"}); });
+    $("#gm-again").addEventListener("click",()=>{ startRandomCase(); window.scrollTo({top:0,behavior:"smooth"}); });
+    $("#gm-new").addEventListener("click",()=>{ gm.stage=0; gm.played=[]; gmRender(); window.scrollTo({top:0,behavior:"smooth"}); });
     $("#gm-results").addEventListener("click",()=>switchTab("results"));
     if(gm.rec.action==="best" && gm.rec.styleOK) confetti();
   }
@@ -397,15 +439,16 @@ function gmRecord(){
   const c=gm.opts[gm.pick];
   gm.rec={
     id:"GRP-"+Date.now().toString(36).toUpperCase().slice(-6), group:gm.group,
-    theme:CASE.theme, action:c.k, styleNamed:gm.style, styleActual:c.st, styleOK:gm.style===c.st,
-    trust:c.fx[0], growth:c.fx[1], stress:c.fx[2], date:new Date().toISOString()
+    caseId:gm.c.id, theme:gm.c.theme, action:c.k, styleNamed:gm.style, styleActual:c.st, styleOK:gm.style===c.st,
+    date:new Date().toISOString()
   };
+  if(!gm.played.includes(gm.c.id)) gm.played.push(gm.c.id);
   const all=gLoad(); all.push(gm.rec);
   if(!lsSet(GKEY,JSON.stringify(all))) toast("Could not save this session (browser storage unavailable).");
 }
 
 function gmFeedback(){
-  const c=gm.opts[gm.pick], rec=gm.rec, cmp=COMPARE[CASE.best];
+  const c=gm.opts[gm.pick], rec=gm.rec, cmp=COMPARE[gm.c.best];
   const verdict={best:["✔ Best course of action","good"],ok:["◐ Partly effective","mixed"],trap:["✖ Not the best course","bad"]}[c.k];
   return `
     <div class="feedback ${verdict[1]}" style="margin-top:0">
@@ -417,8 +460,8 @@ function gmFeedback(){
       <p style="margin:0">You said <b>${esc(styleLabel(gm.style))}</b>. The action you chose is <b>${esc(styleLabel(c.st))}</b>.</p>
     </div>
     <div class="facil">
-      <b>This case called for ${esc(STYLES[CASE.best].name)} (“${esc(STYLES[CASE.best].motto)}”).</b>
-      <p style="margin:4px 0 0">${esc(CASE.why)}</p>
+      <b>This case called for ${esc(STYLES[gm.c.best].name)} (“${esc(STYLES[gm.c.best].motto)}”).</b>
+      <p style="margin:4px 0 0">${esc(gm.c.why)}</p>
     </div>
     <details class="coach"><summary>See every option explained</summary>
       <div style="padding:0 14px 14px">${gm.opts.map((o,i)=>`<div class="rev ${o.k==="best"?"best":""} ${i===gm.pick?"chosen":""}">
@@ -430,18 +473,18 @@ function gmFeedback(){
         <thead><tr><th></th>${STYLE_KEYS.map(k=>`<th>${esc(STYLES[k].name)}</th>`).join("")}</tr></thead>
         <tbody>${COMPARE.rows.slice(0,3).map((r,i)=>`<tr><td><b>${esc(r)}</b></td>${STYLE_KEYS.map(k=>`<td>${esc(COMPARE[k][i])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div></details>
     <div class="facil"><b>Discuss:</b> Which cue in the video pointed to the best option?</div>
-    <div class="row-actions"><button class="btn" id="gm-again">Run it again with another group</button><button class="btn ghost" id="gm-results">View Group Results</button></div>`;
+    <div class="row-actions"><button class="btn" id="gm-again">🎲 Next random scenario</button><button class="btn ghost" id="gm-new">Change group</button><button class="btn ghost" id="gm-results">View Group Results</button></div>`;
 }
 
 /* ============================================================
    GROUP RESULTS
    ============================================================ */
-const COLS=[["group","Group"],["action","Course of action"],["styleNamed","Style named"],["styleActual","Actual style"],["styleOK","Style correct?"],["date","Date"]];
+const COLS=[["group","Group"],["theme","Case"],["action","Course of action"],["styleNamed","Style named"],["styleActual","Actual style"],["styleOK","Style correct?"],["date","Date"]];
 let sortKey="date", sortDir=-1;
 
 function filteredRuns(){
   const q=$("#res-search").value.trim().toLowerCase();
-  return gLoad().filter(r=>!q||[r.group,styleLabel(r.styleNamed),styleLabel(r.styleActual),actionLabel(r.action)].join(" ").toLowerCase().includes(q));
+  return gLoad().filter(r=>!q||[r.group,r.theme||"",styleLabel(r.styleNamed),styleLabel(r.styleActual),actionLabel(r.action)].join(" ").toLowerCase().includes(q));
 }
 function renderResults(){
   const all=gLoad(), n=all.length;
@@ -460,7 +503,7 @@ function renderResults(){
   const head=`<thead><tr>${COLS.map(([k,l])=>`<th class="sortable" data-k="${k}" tabindex="0" role="button">${l}${arrow(k)}</th>`).join("")}</tr></thead>`;
   const body=rows.length?rows.map(r=>{
     const cls=r.action==="best"?"green":r.action==="ok"?"amber":"red";
-    return `<tr><td>${esc(r.group)}</td><td><span class="pill ${cls}">${actionLabel(r.action)}</span></td>
+    return `<tr><td>${esc(r.group)}</td><td>${esc(r.theme||"")}</td><td><span class="pill ${cls}">${actionLabel(r.action)}</span></td>
       <td>${esc(styleLabel(r.styleNamed))}</td><td>${esc(styleLabel(r.styleActual))}</td><td>${r.styleOK?"✔":"✖"}</td><td>${esc(new Date(r.date).toLocaleString())}</td></tr>`;
   }).join(""):`<tr><td colspan="${COLS.length}" class="empty">${n?"No sessions match your search.":"No sessions yet. Complete the group activity to see results here."}</td></tr>`;
   $("#res-table").innerHTML=head+`<tbody>${body}</tbody>`;
@@ -479,9 +522,9 @@ function csvCell(v){
 function exportCSV(){
   const runs=gLoad();
   if(!runs.length){ toast("No sessions to export yet."); return; }
-  const head=["ID","Group","Case","Course of Action","Style Named","Actual Style","Style Correct","Trust %","Growth %","Stress %","Date"];
+  const head=["ID","Group","Case","Course of Action","Style Named","Actual Style","Style Correct","Date"];
   const lines=[head.map(csvCell).join(",")].concat(runs.map(r=>
-    [r.id,r.group,r.theme,actionLabel(r.action),styleLabel(r.styleNamed),styleLabel(r.styleActual),r.styleOK?"Yes":"No",r.trust,r.growth,r.stress,r.date].map(csvCell).join(",")));
+    [r.id,r.group,r.theme,actionLabel(r.action),styleLabel(r.styleNamed),styleLabel(r.styleActual),r.styleOK?"Yes":"No",r.date].map(csvCell).join(",")));
   const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob); a.download="socratic-role-playing-results-"+new Date().toISOString().slice(0,10)+".csv";
